@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- App name -->
+    <string name="app_name">Inventory App</string>
+
+    <!-- Welcome / Login screen -->
+    <string name="welcome_text">Welcome to the Inventory App</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="create_account">Create Account</string>
+
+    <!-- Login feedback -->
+    <string name="login_successful">Login successful</string>
+    <string name="login_failed">Login failed</string>
+    <string name="account_created">Account created</string>
+    <string name="account_exists">Account already exists</string>
+    <string name="err_missing_username">Missing user info. Please log in again.</string>
+
+    <!-- Inventory screen -->
+    <string name="inventory_screen">Inventory</string>
+    <string name="item_name">Item Name</string>
+    <string name="quantity">Qty</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+    <string name="sms_settings">SMS Settings</string>
+
+    <!-- Grid/table headers -->
+    <string name="header_item">Item</string>
+    <string name="header_quantity">Qty</string>
+    <string name="header_action">Action</string>
+
+    <!-- Hints and buttons -->
+    <string name="hint_item_name">Item Name</string>
+    <string name="hint_qty">Quantity</string>
+    <string name="add_button">Add</string>
+    <string name="delete_button">Delete</string>
+
+    <!-- Inventory feedback and errors -->
+    <string name="item_added">Item added</string>
+    <string name="item_updated">Item updated</string>
+    <string name="item_deleted">Item deleted</string>
+    <string name="err_item_name_empty">Item name cannot be empty.</string>
+    <string name="err_quantity_invalid">Please enter a non-negative number.</string>
+    <string name="err_quantity_too_large">Quantity must be less than %1$d.</string>
+    <string name="confirm_delete_title">Delete item</string>
+    <string name="confirm_delete_msg">Delete “%1$s”?</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Dialogs / actions (moved from hard-coded strings in Java) -->
+    <string name="update_quantity_title">Update Quantity</string>
+    <string name="action_update">Update</string>
+
+    <!-- SMS screen -->
+    <string name="notification_settings">Notification Settings</string>
+    <string name="sms_explanation">We use SMS to send alerts for low or zero inventory.</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="permission_status_placeholder">Permission status.</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="back">Back</string>
+    <string name="save">Save Number</string>
+
+    <!-- SMS validation & feedback -->
+    <string name="empty_phone">Phone number cannot be empty.</string>
+    <string name="invalid_phone">Phone number must be exactly 10 digits.</string>
+    <string name="permission_granted">SMS permission granted</string>
+    <string name="permission_denied">SMS permission not granted</string>
+    <string name="sms_sent">Test SMS sent!</string>
+    <string name="sms_failed">SMS failed: %1$s</string>
+
+    <!-- Extra SMS toasts for permission and validation -->
+    <string name="toast_permission_granted">Permission granted!</string>
+    <string name="toast_permission_denied">Permission denied. SMS disabled.</string>
+    <string name="toast_enter_phone">Enter a phone number.</string>
+
+</resources>

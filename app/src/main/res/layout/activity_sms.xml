@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/smsLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/background_light">
+
+    <!-- Top bar with back arrow and title -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back button -->
+        <ImageButton
+            android:id="@+id/backArrow"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/baseline_arrow_back_24"
+            android:contentDescription="@string/back"
+            app:tint="@color/text_primary"
+            android:scaleType="center" />
+
+        <!-- Title of the screen -->
+        <TextView
+            android:id="@+id/notificationTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/notification_settings"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <!-- Text under title explaining SMS notifications -->
+    <TextView
+        android:id="@+id/notificationDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sms_explanation"
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Switch row for enabling/disabling notifications -->
+    <LinearLayout
+        android:id="@+id/switchRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/notificationDescription"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Text saying "Enable Notifications" -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/enable_notifications"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary" />
+        <!-- Switch to turn on/off notifications -->
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/enableNotificationsSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <!-- Input field for phone number -->
+    <EditText
+    android:id="@+id/phoneNumberInput"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:hint="@string/phone_number"
+        android:inputType="phone"
+        android:autofillHints="phone"
+        android:textColorHint="@color/text_secondary"
+        android:textColor="@color/text_primary"
+        android:backgroundTint="@color/light_blue"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/switchRow"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Button to save phone number -->
+    <Button
+        android:id="@+id/savePhoneNumberButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Number"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/phoneNumberInput"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Text that shows current SMS permission status -->
+    <TextView
+        android:id="@+id/permissionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/permission_status_placeholder"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/savePhoneNumberButton"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
