@@ -32,42 +32,40 @@ public class SmsActivity extends AppCompatActivity {
 
     private String currentUsername = "default"; // fallback if username not passed
 
+    // persist confirmation/alerts to inbox
+    private MessageDao messageDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sms);
 
-        // Get username from previous screen (use same key as MainActivity)
         Intent intent = getIntent();
-        String extra = MainActivity.EXTRA_USERNAME; // keeps it consistent everywhere
-        currentUsername = intent.getStringExtra(extra);
+        currentUsername = intent.getStringExtra(MainActivity.EXTRA_USERNAME);
         if (currentUsername == null || currentUsername.isEmpty()) {
             currentUsername = "default";
         }
 
-        // Match UI elements from layout
         enableNotificationsSwitch = findViewById(R.id.enableNotificationsSwitch);
         phoneNumberInput          = findViewById(R.id.phoneNumberInput);
         permissionStatus          = findViewById(R.id.permissionStatus);
         savePhoneNumberButton     = findViewById(R.id.savePhoneNumberButton);
         ImageButton backButton    = findViewById(R.id.backArrow);
 
-        // Store phone number per user (simple local storage)
+        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+        messageDao = db.messageDao();
+
         sharedPreferences = getSharedPreferences("sms_prefs_" + currentUsername, MODE_PRIVATE);
 
-        // Load saved number for this user
         String savedPhone = sharedPreferences.getString("saved_phone", "");
         if (!savedPhone.isEmpty()) {
             phoneNumberInput.setText(savedPhone);
         }
 
-        // Initial permission check
         checkSmsPermission();
 
-        // Back to previous screen
         backButton.setOnClickListener(v -> finish());
 
-        // Save phone number
         savePhoneNumberButton.setOnClickListener(v -> {
             String phone = phoneNumberInput.getText().toString().trim();
 
@@ -82,15 +80,21 @@ public class SmsActivity extends AppCompatActivity {
 
             sharedPreferences.edit().putString("saved_phone", phone).apply();
             Toast.makeText(this, getString(R.string.save), Toast.LENGTH_SHORT).show();
+
+            // inbox log
+            sendSystemMessage("Phone number saved: " + phone + ".");
         });
 
-        // When the switch is turned on, send only if already granted; otherwise ask first
         enableNotificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!isChecked) return;              // user turned it off — nothing to do
+            if (!isChecked) {
+                sendSystemMessage("SMS notifications turned OFF.");
+                return;
+            }
             if (isSmsAllowed) {
                 sendSmsDemo();
+                sendSystemMessage("SMS notifications turned ON.");
             } else {
-                requestSmsPermission();          // ask first; do NOT send yet
+                requestSmsPermission();
             }
         });
     }
@@ -98,7 +102,6 @@ public class SmsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Re-check in case user changed permission in system settings
         checkSmsPermission();
     }
 
@@ -138,14 +141,19 @@ public class SmsActivity extends AppCompatActivity {
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNumber, null, "InventoryApp: Test alert!", null, null);
+            smsManager.sendTextMessage(
+                    phoneNumber,
+                    null,
+                    "InventoryApp: notifications enabled. You'll receive alerts here.",
+                    null,
+                    null
+            );
             Toast.makeText(this, getString(R.string.sms_sent), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, getString(R.string.sms_failed, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
-    // When user responds to the runtime permission dialog
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -162,16 +170,32 @@ public class SmsActivity extends AppCompatActivity {
                     : getString(R.string.permission_denied));
 
             if (!granted) {
-                // Switch back off because we can’t send without permission
                 enableNotificationsSwitch.setChecked(false);
                 Toast.makeText(this, getString(R.string.permission_denied), Toast.LENGTH_SHORT).show();
+                sendSystemMessage("SMS permission denied. Notifications are OFF.");
                 return;
             }
 
-            // If user still wants notifications ON, now it’s safe to send the test SMS
             if (enableNotificationsSwitch.isChecked()) {
                 sendSmsDemo();
+                sendSystemMessage("SMS permission granted. Notifications are ON.");
             }
         }
+    }
+
+    /* -----------------------------
+     * System messages (persisted inbox)
+     * --------------------------- */
+    private void sendSystemMessage(String text) {
+        new Thread(() -> {
+            if (messageDao == null) return;
+            // Message(receiver, body, timestamp) — matches your simplified Message model
+            Message m = new Message(
+                    currentUsername,
+                    text,
+                    System.currentTimeMillis()
+            );
+            messageDao.insert(m);
+        }).start();
     }
 }

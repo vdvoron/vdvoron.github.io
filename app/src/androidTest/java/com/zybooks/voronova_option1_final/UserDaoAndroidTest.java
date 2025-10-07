@@ -20,7 +20,7 @@ public class UserDaoAndroidTest {
     private UserDao userDao;
 
     @Before
-    public void setup() {
+    public void setUp() {
         Context ctx = ApplicationProvider.getApplicationContext();
         db = Room.inMemoryDatabaseBuilder(ctx, AppDatabase.class)
                 .allowMainThreadQueries()
@@ -29,31 +29,29 @@ public class UserDaoAndroidTest {
     }
 
     @After
-    public void tearDown() { db.close(); }
+    public void tearDown() {
+        db.close();
+    }
 
     @Test
-    public void login_withCorrectPassword_succeeds() {
-        User u = new User("u1", "pw1");
-        userDao.insert(u);
-
-        User found = userDao.getUser("u1", "pw1"); // or whatever your DAO exposes
+    public void insertAndLogin_success() {
+        userDao.insert(new User("alice", "pw"));
+        User found = userDao.login("alice", "pw");
         assertNotNull(found);
-        assertEquals("u1", found.username);
+        assertEquals("alice", found.username);
     }
 
     @Test
-    public void login_withWrongPassword_fails() {
-        userDao.insert(new User("u1", "pw1"));
-        User notFound = userDao.getUser("u1", "wrong");
-        assertNull(notFound);
+    public void login_wrongPassword_returnsNull() {
+        userDao.insert(new User("bob", "secret"));
+        assertNull(userDao.login("bob", "wrong"));
     }
 
     @Test
-    public void createAccount_thenLogin_works() {
-        int before = userDao.count(); // if you have it; else skip
-        userDao.insert(new User("newUser", "secret"));
-        User logged = userDao.getUser("newUser", "secret");
-        assertNotNull(logged);
-        // Optional: assertEquals(before + 1, userDao.count());
+    public void getUserByUsername_findsSavedUser() {
+        userDao.insert(new User("carol", "1234"));
+        User u = userDao.getUserByUsername("carol");
+        assertNotNull(u);
+        assertEquals("carol", u.username);
     }
 }

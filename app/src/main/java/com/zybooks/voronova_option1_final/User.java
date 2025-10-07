@@ -4,20 +4,49 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-// Defines a user for login and signup, saved in the database
-@Entity(tableName = "user_table")
+/**
+ * User entity
+ *
+ * Represents a user account stored in the database.
+ * The username is the unique key so no duplicates are allowed.
+ */
+@Entity(tableName = "users")
 public class User {
-    // Username will be used as the ID, must be unique
+
+    /** Username acts as the primary key, must be unique */
     @PrimaryKey
     @NonNull
     public String username;
 
-    // Password for the user
+    /** Password for the account (plain text for now – fine for a class project) */
+    @NonNull
     public String password;
 
-    // Creates a new user with a username and password
-    public User(@NonNull String username, String password) {
+    /** Constructor */
+    public User(@NonNull String username, @NonNull String password) {
         this.username = username;
         this.password = password;
+    }
+
+    // --- Getters ---
+    @NonNull
+    public String getUsername() {
+        return username;
+    }
+
+    @NonNull
+    public String getPassword() {
+        return password;
+    }
+
+    // --- Setter for password (in case user changes it) ---
+    public void setPassword(@NonNull String password) {
+        this.password = password;
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
+        return "User{username='" + username + "', password='" + password + "'}";
     }
 }
