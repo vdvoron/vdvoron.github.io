@@ -17,6 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.room.Room;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * InventoryActivity
  *
@@ -24,8 +28,9 @@ import androidx.room.Room;
  * Features:
  *  - Reads the username passed from MainActivity
  *  - Shows only items that belong to this user
- *  - Allows adding, updating, and deleting items
- *  - Provides a button to open the SMS settings screen
+ *  - Allows adding, updating, deleting items
+ *  - Sorting and searching via InventoryAlgorithms
+ *  - Button to open the SMS settings screen
  */
 public class InventoryActivity extends AppCompatActivity {
 
@@ -40,9 +45,18 @@ public class InventoryActivity extends AppCompatActivity {
     private ImageButton backButton;
     private LinearLayout smsButton;
 
+    // New controls (search + sort)
+    private EditText searchInput;
+    private Button searchBtn;
+    private Button sortNameBtn;
+    private Button sortQtyBtn;
+
     // ---- Data ----
     private InventoryDao inventoryDao;
     private String loggedInUsername;   // username passed from MainActivity
+
+    // In-memory copy of what's shown (for sorting/searching)
+    private final List<InventoryItem> currentItems = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,18 +88,18 @@ public class InventoryActivity extends AppCompatActivity {
         addItemButton  = findViewById(R.id.addItemButton);
         backButton     = findViewById(R.id.backArrow);
         smsButton      = findViewById(R.id.smsButton);
+
+        // New search/sort views
+        searchInput    = findViewById(R.id.searchInput);
+        searchBtn      = findViewById(R.id.searchBtn);
+        sortNameBtn    = findViewById(R.id.sortNameBtn);
+        sortQtyBtn     = findViewById(R.id.sortQtyBtn);
     }
 
     /** Create the Room database and get the DAO. */
+    /** Create or reuse the singleton Room database and get the DAO. */
     private void setupDatabase() {
-        AppDatabase db = Room.databaseBuilder(
-                        getApplicationContext(),
-                        AppDatabase.class,
-                        "inventory-db"
-                )
-                // For development only: reset DB if schema version changes
-                .fallbackToDestructiveMigration()
-                .build();
+        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
         inventoryDao = db.inventoryDao();
     }
 
@@ -103,14 +117,44 @@ public class InventoryActivity extends AppCompatActivity {
 
         // Add a new inventory item
         addItemButton.setOnClickListener(v -> onAddItemClicked());
+
+        // Sort by name
+        sortNameBtn.setOnClickListener(v -> {
+            InventoryAlgorithms.sortByName(currentItems);
+            refreshTable();
+        });
+
+        // Sort by quantity
+        sortQtyBtn.setOnClickListener(v -> {
+            InventoryAlgorithms.sortByQuantity(currentItems);
+            refreshTable();
+        });
+
+        // Search by name (case-insensitive)
+        searchBtn.setOnClickListener(v -> {
+            String q = searchInput.getText().toString().trim();
+            if (q.isEmpty()) {
+                refreshTable(); // show all again
+                return;
+            }
+            // Sort by name first, then binary search
+            InventoryAlgorithms.sortByName(currentItems);
+            InventoryItem found = InventoryAlgorithms.binarySearchByName(currentItems, q);
+            if (found != null) {
+                showSearchResult(Collections.singletonList(found));
+            } else {
+                Toast.makeText(this, R.string.item_not_found, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /** Load all items for this user on a background thread. */
     private void loadInventoryItems() {
         new Thread(() -> {
-            for (InventoryItem item : inventoryDao.getAllItems(loggedInUsername)) {
-                runOnUiThread(() -> addTableRow(item));
-            }
+            List<InventoryItem> fromDb = inventoryDao.getAllItems(loggedInUsername);
+            currentItems.clear();
+            currentItems.addAll(fromDb);
+            runOnUiThread(this::refreshTable);
         }).start();
     }
 
@@ -131,8 +175,10 @@ public class InventoryActivity extends AppCompatActivity {
 
         new Thread(() -> {
             inventoryDao.insertItem(newItem);
+            // keep our in-memory list in sync
+            currentItems.add(newItem);
             runOnUiThread(() -> {
-                addTableRow(newItem);
+                refreshTable();
                 itemNameInput.setText("");
                 itemQtyInput.setText("");
                 Toast.makeText(this, getString(R.string.item_added), Toast.LENGTH_SHORT).show();
@@ -193,20 +239,39 @@ public class InventoryActivity extends AppCompatActivity {
 
     /** Show the correct toast message for a quantity error. */
     private void showQtyError(QtyResult.Reason reason) {
-        int msgId;
-        switch (reason) {
-            case EMPTY:
-            case NOT_A_NUMBER:
-            case NEGATIVE:
-                msgId = R.string.err_quantity_invalid;
-                break;
-            case TOO_LARGE:
-                msgId = R.string.err_quantity_too_large;
-                break;
-            default:
-                msgId = R.string.err_quantity_invalid;
+        if (reason == QtyResult.Reason.TOO_LARGE) {
+            // Only err_quantity_too_large should be formatted with MAX_QTY
+            Toast.makeText(this, getString(R.string.err_quantity_too_large, MAX_QTY), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, getString(R.string.err_quantity_invalid), Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(this, getString(msgId, MAX_QTY), Toast.LENGTH_SHORT).show();
+    }
+
+    /* -----------------------------
+     * Table helpers
+     * --------------------------- */
+
+    /** Rebuild the table from currentItems (keeps header row at index 0). */
+    private void refreshTable() {
+        // Remove everything after the header
+        int childCount = inventoryTable.getChildCount();
+        if (childCount > 1) {
+            inventoryTable.removeViews(1, childCount - 1);
+        }
+        for (InventoryItem item : currentItems) {
+            addTableRow(item);
+        }
+    }
+
+    /** Temporarily show only a subset (used by search). */
+    private void showSearchResult(List<InventoryItem> subset) {
+        int childCount = inventoryTable.getChildCount();
+        if (childCount > 1) {
+            inventoryTable.removeViews(1, childCount - 1);
+        }
+        for (InventoryItem item : subset) {
+            addTableRow(item);
+        }
     }
 
     /* -----------------------------
@@ -237,7 +302,7 @@ public class InventoryActivity extends AppCompatActivity {
         deleteView.setTextColor(ContextCompat.getColor(this, R.color.light_blue));
         deleteView.setPadding(8, 8, 8, 8);
         deleteView.setClickable(true);
-        deleteView.setOnClickListener(v -> confirmAndDelete(item, row));
+        deleteView.setOnClickListener(v -> confirmAndDelete(item));
 
         // Add views to the row, then to the table
         row.addView(nameView);
@@ -253,9 +318,10 @@ public class InventoryActivity extends AppCompatActivity {
         input.setText(String.valueOf(item.quantity));
 
         new AlertDialog.Builder(this)
-                .setTitle(R.string.update_quantity_title)
+                // Using literals so it compiles with your current strings.xml
+                .setTitle("Update Quantity")
                 .setView(input)
-                .setPositiveButton(R.string.action_update, (dialog, which) -> {
+                .setPositiveButton("Update", (dialog, which) -> {
                     String newQtyStr = input.getText().toString().trim();
                     QtyResult r = readQuantity(newQtyStr);
                     if (r.reason != QtyResult.Reason.OK) {
@@ -268,6 +334,7 @@ public class InventoryActivity extends AppCompatActivity {
                     new Thread(() -> {
                         inventoryDao.updateItem(item);
                         runOnUiThread(() -> {
+                            // Update view and keep table ordering as-is
                             qtyView.setText(String.valueOf(newQty));
                             Toast.makeText(this, getString(R.string.item_updated), Toast.LENGTH_SHORT).show();
                         });
@@ -277,16 +344,17 @@ public class InventoryActivity extends AppCompatActivity {
                 .show();
     }
 
-    /** Confirm deletion, then remove from database and UI. */
-    private void confirmAndDelete(InventoryItem item, TableRow row) {
+    /** Confirm deletion, then remove from DB, list, and refresh UI. */
+    private void confirmAndDelete(InventoryItem item) {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.confirm_delete_title)
                 .setMessage(getString(R.string.confirm_delete_msg, item.name))
                 .setPositiveButton(R.string.delete_button, (dialog, which) -> {
                     new Thread(() -> {
                         inventoryDao.deleteItem(item);
+                        currentItems.remove(item);
                         runOnUiThread(() -> {
-                            inventoryTable.removeView(row);
+                            refreshTable();
                             Toast.makeText(this, getString(R.string.item_deleted), Toast.LENGTH_SHORT).show();
                         });
                     }).start();

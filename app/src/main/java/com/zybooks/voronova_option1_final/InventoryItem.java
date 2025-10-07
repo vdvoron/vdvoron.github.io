@@ -32,11 +32,34 @@ public class InventoryItem {
     @NonNull
     public String username;
 
-    /** Constructor used by Room to create a new item. */
+    /** Constructor used by Room and by code when inserting a new item. */
     public InventoryItem(@NonNull String name, int quantity, @NonNull String username) {
         this.name = name;
         this.quantity = quantity;
         this.username = username;
+    }
+
+    // ---- Getters / setter ----
+    public int getId() {
+        return id;
+    }
+
+    @NonNull
+    public String getName() {
+        return name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    @NonNull
+    public String getUsername() {
+        return username;
     }
 
     /** Helpful for debugging/logging. */

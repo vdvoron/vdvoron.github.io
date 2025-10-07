@@ -37,6 +37,12 @@
     <string name="add_button">Add</string>
     <string name="delete_button">Delete</string>
 
+    <!-- NEW controls for search and sort -->
+    <string name="search">Search</string>
+    <string name="sort_by_name">Sort by Name</string>
+    <string name="sort_by_qty">Sort by Qty</string>
+    <string name="item_not_found">Item not found</string>
+
     <!-- Inventory feedback and errors -->
     <string name="item_added">Item added</string>
     <string name="item_updated">Item updated</string>
@@ -48,7 +54,7 @@
     <string name="confirm_delete_msg">Delete “%1$s”?</string>
     <string name="cancel">Cancel</string>
 
-    <!-- Dialogs / actions (moved from hard-coded strings in Java) -->
+    <!-- Dialogs / actions -->
     <string name="update_quantity_title">Update Quantity</string>
     <string name="action_update">Update</string>
 
@@ -69,7 +75,7 @@
     <string name="sms_sent">Test SMS sent!</string>
     <string name="sms_failed">SMS failed: %1$s</string>
 
-    <!-- Extra SMS toasts for permission and validation -->
+    <!-- Extra SMS toasts -->
     <string name="toast_permission_granted">Permission granted!</string>
     <string name="toast_permission_denied">Permission denied. SMS disabled.</string>
     <string name="toast_enter_phone">Enter a phone number.</string>
