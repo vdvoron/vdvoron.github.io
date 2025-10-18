@@ -1,6 +1,6 @@
 This repository is my final Capstone project, the Inventory Management Android App,  which includes all documentation and code review materials. It includes the original version of the app, three written enhancement narratives, and a recorded code review, and each enhancement branch in GitHub contains the full Android Studio project for that version. Together, these files show the full progress of my work: from the first version to the final improved one, highlighting my growth in software engineering, database design, testing, and algorithmic problem-solving.
 
-## **Inventory Management Android App – Capstone Project
+## Inventory Management Android App – Capstone Project
 
 The Inventory Management App is an Android application that lets users create accounts, log in, and manage their personal inventory. Each user can add, edit, delete, and search for items in their own list. The app saves all data through the Room database, so everything stays stored even after closing the app. It also includes system messages that work like alerts or confirmations, and SMS notifications that can be sent to the user’s phone when changes happen in the inventory.
 
